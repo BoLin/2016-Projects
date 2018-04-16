@@ -1,0 +1,22 @@
+%% ECE593 HW7 cross-fold data
+function [tdata,vdata] = folddata(data,k)
+    
+randi(k,size(data1,1),1)
+
+    tdata = cell(k,1);
+    vdata = cell(k,1);
+    N = size(data,1);
+    block_size = ceil(N/k);
+    for i = 1:k
+        vds = [];
+        tds = [];
+        pos_start = (i-1)*block_size + 1;
+        pos_end = min(i*block_size, N);
+        vds = [vds; data(pos_start:pos_end,:)];
+        temp = data;
+        temp(pos_start:pos_end,:)=[];
+        tds = [tds; temp];
+        tdata{i} = tds;
+        vdata{i} = vds;
+    end
+end

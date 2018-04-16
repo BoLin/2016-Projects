@@ -1,0 +1,19 @@
+%% ECE 593 HW7 HMM training
+function [meanloglik,ll,prior1,transmat1,obsmat1,loglik] = HMM(tdata,vdata,Q,O)
+    k = size(tdata,1);
+    ll = NaN*zeros(k,1);
+    for j = 1:k      
+        ini_prior1 = normalise(rand(Q,1));
+        ini_transmat1 = mk_stochastic(rand(Q,Q));
+        ini_obsmat1 = mk_stochastic(rand(Q,O));
+        [~, prior1, transmat1, obsmat1] = dhmm_em(tdata{j}, ini_prior1, ini_transmat1,ini_obsmat1, 'max_iter', 50,'verbose',0);
+        testdata = vdata{j};
+        loglik = NaN*zeros(size(testdata,1),1);
+        %send each data to test
+        for l = 1:size(testdata,1)
+            loglik(l) = dhmm_logprob(testdata(l,:), prior1, transmat1, obsmat1);
+        end
+        ll(j) = nanmean(loglik);
+    end
+    meanloglik = nanmean(ll);
+end
