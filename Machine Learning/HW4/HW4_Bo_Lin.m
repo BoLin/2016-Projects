@@ -1,0 +1,94 @@
+%% ECE593 HW4 Bo Lin
+clear all
+clc
+close all
+load 264_optdigits.mat
+load 264_mystery_data.mat
+%% using PCA.m
+d = 2;% reduce to 2 dimension
+[xd1, xx1, xxmse1] = pca1(data,d);%data is the unsupervised data
+f1 = figure(1);
+movegui(f1,'northeast')
+plot(xd1(:,1),xd1(:,2),'.c')
+for i=1:100
+    s = sprintf('%d', dig_train(i,65));%number plotting
+text(xd1(i,1),xd1(i,2),s)
+end
+title('Replicate figure 6.3')
+
+f2 = figure(2);
+movegui(f2,'northwest')
+c = dig_train(:,65);%only the class label
+gscatter(xd1(:,1),xd1(:,2),c); %extinct color plotting
+title('Replicate figure 6.3 with distinct color')
+
+% get error for each number of principal components
+for i=1:63
+    [exd, exx, error(i)] = pca1(data,i);
+    
+end
+f7 = figure(7);
+movegui(f7,'north')
+plot(error,'marker', 'o');
+xlabel('number of principal components ');
+ylabel('mean-squared reconstruction error');
+title('reconstruction error on Optdigits dataset');
+
+pause
+%% using Tool box
+% PCA
+PCA = compute_mapping(data, 'PCA');	
+f3 = figure(3);
+movegui(f3,'southwest')
+gscatter(PCA(:,1),PCA(:,2),c); %extinct color plotting
+title('Result of PCA');
+
+
+%LDA
+% For the supervised techniques ('LDA', 'GDA', 'NCA', 'MCML', and 'LMNN'),
+% the labels of the instances should be specified in
+% the first column of A (using numeric labels).
+labeleddata=[c data];%add label to the front
+LDA = compute_mapping(labeleddata, 'LDA');	
+f4 = figure(4);
+movegui(f4,'south')
+gscatter(LDA(:,1),LDA(:,2),c); %extinct color plotting
+title('Result of LDA');
+
+%MDS
+MDS = compute_mapping(data, 'MDS');	
+f5 = figure(5);
+movegui(f5,'southeast')
+gscatter(MDS(:,1),MDS(:,2),c); %extinct color plotting
+title('Result of MDS');
+
+%SNE  :            - <double> perplexity -> default = 30
+SNE = compute_mapping(data, 'SNE');	
+f6 = figure(6);
+movegui(f6,'north')
+gscatter(SNE(:,1),SNE(:,2),c); %extinct color plotting
+title('Result of Stochastic Neighbor Embedding');
+axis([-15 15 -15 15])
+
+pause
+close all
+%% Mystery dataset no class label
+% PCA
+
+MPCA = compute_mapping(mystery_data, 'PCA');	
+
+f8 = figure(8);
+movegui(f8,'northwest')
+scatter(MPCA(:,1),MPCA(:,2),'.'); %extinct color plotting
+title('Result of PCA on Mystery dataset');
+
+
+%SNE for mystery data
+MSNE = compute_mapping(mystery_data,'SNE');	
+f9 = figure(9);
+movegui(f9,'northeast')
+scatter(MSNE(:,1),MSNE(:,2),'.'); %extinct color plotting
+title('Result of Stochastic Neighbor Embedding');
+
+
+    
