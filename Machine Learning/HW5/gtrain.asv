@@ -1,0 +1,150 @@
+%% ECE593 HW5 gtrain.m
+% function P = gtrain(X,N)
+% 
+% % X  input data X
+% % N  # of clusters;
+% 
+% [m, n] = size(X);
+% P.N = N;
+% pdf = zeros(m,N);%pdf in eg
+% W = zeros(m,N);
+%  sigma = zeros(n,n,k);
+% 
+% [IDX, C] = kmeans(X,N);
+% mu = C';
+% 
+% % Use  covariance as the initial variance for each cluster.
+% for i=1:N
+%      sigma(:,:,i) = eye(2);
+% end
+% 
+% % Assign equal prior probabilities to each cluster.
+% phi = ones(N,1)/N;
+% % Loop until convergence.
+% for iter =1:1000
+%     %% Expectation
+%     % For each cluster...
+%     for j = 1:N
+%         pdf(:,j) = gaussianND(X, mu(:,j)', sigma(:,:,j));
+%     end
+%     
+%     
+%     for i = 1:m
+%         denominator = pdf(i,:)*phi;% Multiply each pdf value by the prior probability for cluster.
+%         for j = 1:N
+%             W(i,j) = pdf(i,j)*phi(j)/denominator;% Divide the weighted probabilities by the sum of weighted probabilities for each cluster.
+%         end
+%     end
+%     
+%     %             pdf_w = bsxfun(@times, pdf, phi');
+%     %             W = bsxfun(@rdivide, pdf_w, sum(pdf_w, 2));
+%     %% Maximization
+%     % Calculate the prior probability for cluster
+%     phi_new = mean(W,1)';
+%     
+%     for j = 1:N
+%         mu_new(:,j) = (W(:,j)'*X)'/sum(W(:,j));
+%         numerator = zeros(n,n);
+%         
+%         for i = 1:m
+%             numerator = numerator + W(i,j)*(X(i,:)-mu(:,j)')'*(X(i,:)-mu(:,j)');
+%         end
+%         sigma_new(:,:,j) = numerator/sum(W(:,j));
+%     end
+%     
+%     % if mu_new is NaN, break
+%     if ~isreal(sigma_new) || ~isreal(mu_new) || ~isreal(phi_new)
+%         ME = MException('MyComponent:noSuchVariable', ...
+%             'Not real numbers');
+%         throw(ME);
+%     end
+%     
+%     if ((mu_new - mu)<1e-4)%converge
+%         break
+%     end
+%     phi = phi_new;
+%     mu = mu_new;
+%     sigma = sigma_new;
+%  
+% end
+%     phi = phi_new;
+%     mu = mu_new;
+%     sigma = sigma_new;
+%     
+% P.mu = mu;
+% P.phi = phi;
+% P.sigma = sigma;
+% 
+% end
+function P = gtrain(X,k)
+
+   % X  input data X
+  %  k  # of clusters;
+
+    [m, n] = size(X); % 
+    P.k = k;
+    pdf = zeros(m,k);
+    w = zeros(m,k);
+    [IDX, C] = kmeans(X,k);%use kmean as initial
+    mu = C';
+    sigma = zeros(n,n,k);
+    % mu, phi, sigma initialization
+    for l=1:k
+        sigma(:,:,l) = eye(2);
+    end
+    
+    % Assign equal prior probabilities to each cluster.
+    phi = ones(k,1)/k;
+    stop = 0;
+    iter = 0;
+    while(~stop && iter<=1000)
+        for j = 1:k
+            pdf(:,j) = gaussianND(X, mu(:,j)', sigma(:,:,j));
+        end
+
+        for i = 1:m
+            denominator = pdf(i,:)*phi;
+            for j = 1:k
+                w(i,j) = pdf(i,j)*phi(j)/denominator;
+            end
+        end
+
+        phi_new = mean(w,1)';
+
+        for j = 1:k
+            mu_new(:,j) = (w(:,j)'*X)'/sum(w(:,j));
+        end
+
+        for j = 1:k
+            numerator = zeros(n,n);
+            for i = 1:m
+                numerator = numerator + w(i,j)*(X(i,:)-mu(:,j)')'*(X(i,:)-mu(:,j)');
+            end
+            sigma_new(:,:,j) = numerator/sum(w(:,j));
+        end
+        
+        if ~isreal(sigma_new) || ~isreal(mu_new) || ~isreal(phi_new)
+            ME = MException('MyComponent:noSuchVariable', ...
+                'Not real numbers');
+            throw(ME);
+        end
+        
+        e = sum(sum(abs(mu-mu_new)));
+        if(e<=1e-4)
+            stop = 1
+        end
+        
+        phi = phi_new;
+        mu = mu_new;
+        sigma = sigma_new;
+        iter = iter+1;
+    end
+    P.mu = mu;
+    P.phi = phi;
+    P.sigma = sigma;
+    iter
+end
+
+
+
+
